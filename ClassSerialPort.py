@@ -211,7 +211,6 @@ class PortC(object):
         tempTable = self.table[4:len(self.table)-2]
         return hex(reduce(lambda a, b: (a + b) & 0xFF, tempTable, 0))
 
-
     def close(self):
         self.com.close()
         print "Zamknieto port"
