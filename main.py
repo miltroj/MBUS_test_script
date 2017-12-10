@@ -1,7 +1,7 @@
 import time
 from ClassSerialPort import PortC
 from frame_to_Send import ConstructFrame
-from statis_functions import StaticMethods
+# from statis_functions import StaticMethods
 
 #read all frames Data, Events, Config, Service
 def read_all_frames(COM_port_class , build_frame):
@@ -58,8 +58,8 @@ if __name__ == '__main__':
 
         # change_baudurate(dostepDoPortu , frameC)
         # time.sleep(1)
-        # read_all_frames(dostepDoPortu , frameC)
-        read_data(dostepDoPortu , frameC)
+        read_all_frames(dostepDoPortu , frameC)
+        # read_data(dostepDoPortu , frameC)
         # get_back_from_test_mode(dostepDoPortu , frameC)
         x+=1
 

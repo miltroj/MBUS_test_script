@@ -1,8 +1,6 @@
 from functools import reduce
-from statis_functions import StaticMethods
-
-
-
+# from statis_functions import StaticMethods
+from additional_methods import *
 
 class ConstructFrame(object):
 
@@ -168,7 +166,7 @@ class ConstructFrame(object):
     # get back from test mode to normal mode
     def get_bact_to_normale_state(self):
         temp_list = [0x02,0x05,0x43,0x7F,0x03]
-        temp_lisst_to_send = StaticMethods.create_frame(temp_list)
+        temp_lisst_to_send = create_frame(temp_list)
         # print "%r" %" ".join(format(byteInt, '02x') for byteInt in temp_list).upper()
         return temp_lisst_to_send
 

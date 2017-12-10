@@ -2,7 +2,8 @@ import serial
 import time
 import datetime
 from functools import reduce
-from statis_functions import StaticMethods
+# from statis_functions import StaticMethods
+from additional_methods import *
 from plot import create_chart
 
 dict_frames = { 0x56 : "Dane aktualne ", 0x60 : "Szczegoly zdarzen ", 0x52: "Konfiguracja i progi ", 0x40 : "Dane serwisowe ", 0x5B : "Zapytanie 0x7B",
@@ -30,7 +31,7 @@ def log_to_file_write(func):
         temp_table = [ord(byte) for byte in frame]
         temp_frame_string = " ".join(format(byteInt, '02x') for byteInt in temp_table).upper()
         with open("loger-{}.txt".format(date_time_log_file()), 'a') as file:
-            file.write(date_time() + " SND " + dict_frames[ temp_table[1] ] + " |" + StaticMethods.parse_time_04_6D(temp_table) + "\n")
+            file.write(date_time() + " SND " + dict_frames[ temp_table[1] ] + " |" + parse_time_04_6D(temp_table) + "\n")
         with open("log_raw-{}.txt".format(date_time_log_file()) , 'a') as file_raw:
             file_raw.write( date_time() + temp_frame_string + "\n")
         return func(self , frame)
@@ -52,7 +53,7 @@ def log_to_file_read(func):
                 temp_frame_string = " przekroczono liczbe bajtow wejsciowych {}".format( temp_table )
             with open("loger-{}.txt".format(date_time_log_file()), 'a') as file:
                 temp_insert = dict_frames[temp_table[1]] if temp_dict else "ACK"
-                file.write( date_time() + " RCV  " + temp_insert + " |" + StaticMethods.parse_time_04_6D(temp_table)  + "\n" )
+                file.write( date_time() + " RCV  " + temp_insert + " |" + parse_time_04_6D(temp_table)  + "\n" )
             with open("log_raw-{}.txt".format(date_time_log_file()), 'a') as file_raw:
                 file_raw.write(date_time() + temp_frame_string + "\n")
         else:
@@ -70,9 +71,11 @@ class PortC(object):
         self.table      = []
 
         #region chart
-        self.x_val_AVG_flow = []
-        self.x_val_all_flow = []
-        self.y_date_time    = []
+        self.x_val_AVG_flow  = []
+        self.x_val_all_flow  = []
+        self.x_events_saved  = []
+        self.x_events_actual = []
+        self.y_date_time     = []
         #endregion
 
     def reinit_COM_port(self, baudurate):
@@ -186,12 +189,14 @@ class PortC(object):
 
     def write_and_read(self, frame):
         self.write(frame)
+        tab_events = []
         time.sleep(0.2)
         temp_read = self.read_3()
-        all_variable, avg_variable = StaticMethods.iterate_and_find( temp_read )
+        all_variable, avg_variable, tab_events = iterate_and_find( temp_read )
         # if temp_read != None:
-        #     print "Parsed time %r \n" %StaticMethods.parse_time_04_6D( temp_read )
-        if all_variable is not None and avg_variable is not None:
+        #     print "Parsed time %r \n" %parse_time_04_6D( temp_read )
+        # if all_variable is not None and avg_variable is not None is:
+        if (all_variable and avg_variable and tab_events) is not None:
             self.x_val_AVG_flow.append( avg_variable )
             self.x_val_all_flow.append( all_variable )
             self.y_date_time.append( datetime.datetime.now() )

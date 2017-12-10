@@ -39,11 +39,9 @@ def iterate_and_find(frame):
     atarms_exist = True
     tablica = []
     if type(frame) == int or frame == None:
-        print("Weszlo tutaj")
         return None
     for i,element in enumerate(frame):
         if atarms_exist:
-            print("Weszlo w alarmy")
             tablica, atarms_exist = parse_events_to_table(element,i,frame)
         else:
             break
@@ -72,6 +70,7 @@ tablica_wyjsciowa = []
 tablica_wyjsciowa = iterate_and_find(table_int)
 
 print("%r" %tablica_wyjsciowa)
+print("%r" %len(tablica_wyjsciowa))
 
 # print("byte to little edian %r" %byte_to_little_edian(0xFF))
 
