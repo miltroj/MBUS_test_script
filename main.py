@@ -54,12 +54,12 @@ if __name__ == '__main__':
     x = 0
     send = False
 
-    while x< 5:
+    while x< 2000:
 
         # change_baudurate(dostepDoPortu , frameC)
         # time.sleep(1)
-        read_all_frames(dostepDoPortu , frameC)
-        # read_data(dostepDoPortu , frameC)
+        # read_all_frames(dostepDoPortu , frameC)
+        read_data(dostepDoPortu , frameC)
         # get_back_from_test_mode(dostepDoPortu , frameC)
         x+=1
 

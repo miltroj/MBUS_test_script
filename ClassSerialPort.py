@@ -4,9 +4,9 @@ import datetime
 from functools import reduce
 # from statis_functions import StaticMethods
 from additional_methods import *
-from plot import create_chart
+from plot import *
 
-dict_frames = { 0x56 : "Dane aktualne ", 0x60 : "Szczegoly zdarzen ", 0x52: "Konfiguracja i progi ", 0x40 : "Dane serwisowe ", 0x5B : "Zapytanie 0x7B",
+dict_frames = { 0x56 : "Dane aktualne ", 0x60 : "Szczegoly zdarzen ",0x70 : "Jakas anomalia?? ", 0x52: "Konfiguracja i progi ", 0x40 : "Dane serwisowe ", 0x5B : "Zapytanie 0x7B",
                 0x7B : "Zapytanie 0x5B", 0x09 : "Update czasu ", 0x06: "wpis do rejestru", 0x0b : "Ustawienie adresu wild card",
                 0x05 : "przejscie do trybu normalnej pracy", 0x04 : "Ustaw dane do odczytu", 0x03: 'Zmiana bauduratu'}
 
@@ -199,6 +199,10 @@ class PortC(object):
         if (all_variable and avg_variable and tab_events) is not None:
             self.x_val_AVG_flow.append( avg_variable )
             self.x_val_all_flow.append( all_variable )
+            self.x_events_saved.append( tab_events[:16])
+            # print("     SAVED EVENTS %r" %tab_events[:16])
+            self.x_events_actual.append( tab_events[16:])
+            # print("     actual EVENTS %r" %tab_events[16:])
             self.y_date_time.append( datetime.datetime.now() )
             self.write_to_file( datetime.datetime.now() ,avg_variable , all_variable)
 
@@ -221,5 +225,9 @@ class PortC(object):
         print "Zamknieto port"
 
     def build_chart(self):
-        create_chart(self.x_val_AVG_flow, self.x_val_all_flow, self.y_date_time)
-        create_chart(self.x_val_AVG_flow, self.x_val_all_flow, self.y_date_time)
+        sleep_time = 1.5
+        create_avg_flow_chart(self.x_val_AVG_flow, self.y_date_time)
+        create_overall_flow_chart(self.x_val_all_flow, self.y_date_time)
+        create_chart_events(self.x_events_saved, self.y_date_time)
+        time.sleep(sleep_time)
+        create_chart_events(self.x_events_actual, self.y_date_time)
