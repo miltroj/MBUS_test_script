@@ -1,25 +1,30 @@
 import serial
-import time
 import datetime
 from functools import reduce
 # from statis_functions import StaticMethods
 from additional_methods import *
 from plot import *
 
-dict_frames = { 0x56 : "Dane aktualne ", 0x60 : "Szczegoly zdarzen ",0x70 : "Jakas anomalia?? ", 0x52: "Konfiguracja i progi ", 0x40 : "Dane serwisowe ", 0x5B : "Zapytanie 0x7B",
-                0x7B : "Zapytanie 0x5B", 0x09 : "Update czasu ", 0x06: "wpis do rejestru", 0x0b : "Ustawienie adresu wild card",
-                0x05 : "przejscie do trybu normalnej pracy", 0x04 : "Ustaw dane do odczytu", 0x03: 'Zmiana bauduratu'}
+dict_frames = { 0x56 : "Dane aktualne ", 0x60 : "Szczegoly zdarzen ",0x70 : "Szczegoly zdarzen ", 0x52: "Konfiguracja i progi ", 0x40 : "Dane serwisowe ", 0x5B : "Zapytanie 0x7B",
+                0x7B : "Zapytanie 0x5B", 0x09 : "Update czasu ", 0x06: "wpis do rejestru", 0x0b : "Ustawienie adresu wild card", 0x20 : "Nieznana",
+                0x05 : "przejscie do trybu normalnej pracy", 0x04 : "Ustaw dane do odczytu", 0x03: 'Zmiana bauduratu', 0x50 : "Szczegoly zdarzen", 0x30 : "Szczegoly zdarzen"}
+
+def check_key(dict,key):
+    if key in dict:
+        return dict[key]
+    else:
+        return hex( key )
 
 def date_time():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f") + " "
 
 def additional_log(respond):
-    with open("respondLog-{}.txt".format(date_time_log_file()), 'a') as file:
+    with open("log/respondLog-{}.txt".format(date_time_log_file()), 'a') as file:
         temp_string = "{}".format( hex(respond) )
         file.write(date_time() + "| respond |" + temp_string + " |" + "\n")
 
 def additional_log_2(respond , info):
-    with open("respondLog-{}.txt".format(date_time_log_file()), 'a') as file:
+    with open("log/respondLog-{}.txt".format(date_time_log_file()), 'a') as file:
         temp_string = "{}".format( respond )
         file.write(date_time() + "| respond |" + info + temp_string + " |" + "\n")
 
@@ -30,9 +35,9 @@ def log_to_file_write(func):
     def func_wrapper(self, frame):
         temp_table = [ord(byte) for byte in frame]
         temp_frame_string = " ".join(format(byteInt, '02x') for byteInt in temp_table).upper()
-        with open("loger-{}.txt".format(date_time_log_file()), 'a') as file:
-            file.write(date_time() + " SND " + dict_frames[ temp_table[1] ] + " |" + parse_time_04_6D(temp_table) + "\n")
-        with open("log_raw-{}.txt".format(date_time_log_file()) , 'a') as file_raw:
+        with open("log/loger-{}.txt".format(date_time_log_file()), 'a') as file:
+            file.write(date_time() + " SND " + check_key(dict_frames,key=temp_table[1]) + " |" + parse_time_04_6D(temp_table) + "\n")
+        with open("log/log_raw-{}.txt".format(date_time_log_file()) , 'a') as file_raw:
             file_raw.write( date_time() + temp_frame_string + "\n")
         return func(self , frame)
     return func_wrapper
@@ -51,10 +56,10 @@ def log_to_file_read(func):
             else:
                 # print "index %r %r" %(temp_table , type(temp_table))
                 temp_frame_string = " przekroczono liczbe bajtow wejsciowych {}".format( temp_table )
-            with open("loger-{}.txt".format(date_time_log_file()), 'a') as file:
-                temp_insert = dict_frames[temp_table[1]] if temp_dict else "ACK"
+            with open("log/loger-{}.txt".format(date_time_log_file()), 'a') as file:
+                temp_insert = check_key(dict_frames,key=temp_table[1]) if temp_dict else "ACK"
                 file.write( date_time() + " RCV  " + temp_insert + " |" + parse_time_04_6D(temp_table)  + "\n" )
-            with open("log_raw-{}.txt".format(date_time_log_file()), 'a') as file_raw:
+            with open("log/log_raw-{}.txt".format(date_time_log_file()), 'a') as file_raw:
                 file_raw.write(date_time() + temp_frame_string + "\n")
         else:
             print "     None nie wpisujemy do logowania %r" % type(temp_table)
@@ -67,15 +72,17 @@ class PortC(object):
         self.baudrate   = int(baud)
         self.port       = port
         self.com        = serial.Serial(self.port , baudrate=self.baudrate, bytesize=serial.EIGHTBITS, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE,timeout=.2)
-        print "Otwarto port"
+        print "Otwarto port komunikacyjny Mbus {}".format(self.port)
         self.table      = []
 
         #region chart
+        self.dt_flow         = []
         self.x_val_AVG_flow  = []
         self.x_val_all_flow  = []
         self.x_events_saved  = []
         self.x_events_actual = []
         self.y_date_time     = []
+        self.slep_time_building = 1
         #endregion
 
     def reinit_COM_port(self, baudurate):
@@ -84,8 +91,11 @@ class PortC(object):
         self.com        = serial.Serial(self.port , baudrate=baudurate, bytesize=serial.EIGHTBITS, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE,timeout=.1)
 
     def write_to_file(self, datetime, avg, all):
-        with open("charts-{}.txt".format(date_time_log_file()) , 'a') as file_raw:
-            file_raw.write( datetime.strftime("%Y-%m-%d %H:%M:%S:%f") + ";" + str(avg) + ";" + str(all) + "\n")
+        with open("charts/charts-{}.txt".format(date_time_log_file()) , 'a') as file_raw:
+            events_saved = ';'.join( str(i) for i in self.x_events_saved[-1])
+            events_actual = ';'.join( str(i) for i in self.x_events_actual[-1])
+            # file_raw.write( datetime.strftime("%Y-%m-%d %H:%M:%S:%f") + ";" + str(avg) + ";" + str(all) + "\n")
+            file_raw.write( datetime.strftime("%Y-%m-%d %H:%M:%S:%f") + ";" + str(avg) + ";" + str(all) + ";" + events_saved + ";" + events_actual + "\n")
 
     @log_to_file_write
     def write(self, frame):
@@ -136,7 +146,7 @@ class PortC(object):
                 break
             elif self.com.inWaiting() != 0:
                 response = ord(self.com.read(1))
-                additional_log( response )
+                # additional_log( response )
                 self.table.append(response)
                 # additional_log_2(" " ,"Wejscie w append")
 
@@ -163,7 +173,7 @@ class PortC(object):
                 time.sleep(.2)
                 if self.com.inWaiting() != 0:
                     self.recived = [ord(element) for element in self.com.read()]
-                    additional_log_2(" ", "Odpowiedzi %r" %" ".join(format(byteInt, '02x') for byteInt in self.recived ).upper())
+                    # additional_log_2(" ", "Odpowiedzi %r" %" ".join(format(byteInt, '02x') for byteInt in self.recived ).upper())
                     return self.table
                 else:
                     break
@@ -192,11 +202,12 @@ class PortC(object):
         tab_events = []
         time.sleep(0.2)
         temp_read = self.read_3()
-        all_variable, avg_variable, tab_events = iterate_and_find( temp_read )
+        all_variable, avg_variable, tab_events, dt_flow = iterate_and_find( temp_read )
         # if temp_read != None:
         #     print "Parsed time %r \n" %parse_time_04_6D( temp_read )
         # if all_variable is not None and avg_variable is not None is:
         if (all_variable and avg_variable and tab_events) is not None:
+            self.dt_flow.append( dt_flow )
             self.x_val_AVG_flow.append( avg_variable )
             self.x_val_all_flow.append( all_variable )
             self.x_events_saved.append( tab_events[:16])
@@ -225,9 +236,39 @@ class PortC(object):
         print "Zamknieto port"
 
     def build_chart(self):
-        sleep_time = 1.5
+        print ("Dt sleep %r" %self.dt_flow)
+        print ("Dt sleep %r" %type(self.dt_flow))
+        print ("time %r" %self.y_date_time)
+        sleep_time = self.slep_time_building
+        create_dt_flow(self.dt_flow, self.y_date_time)
+        time.sleep(sleep_time)
         create_avg_flow_chart(self.x_val_AVG_flow, self.y_date_time)
         create_overall_flow_chart(self.x_val_all_flow, self.y_date_time)
         create_chart_events(self.x_events_saved, self.y_date_time)
         time.sleep(sleep_time)
         create_chart_events(self.x_events_actual, self.y_date_time)
+
+    def build_chart_act_events(self):
+        create_chart_events(self.x_events_actual, self.y_date_time)
+        time.sleep(self.slep_time_building)
+
+    def build_chart_svd_events(self):
+        create_chart_events(self.x_events_saved, self.y_date_time)
+        time.sleep(self.slep_time_building)
+
+    def build_ch_avg_flow(self):
+        create_avg_flow_chart(self.x_val_AVG_flow, self.y_date_time)
+        time.sleep(self.slep_time_building)
+
+    def build_ch_all_flow(self):
+        create_avg_flow_chart(self.x_val_all_flow, self.y_date_time)
+        time.sleep(self.slep_time_building)
+
+    def build_ch_dt(self):
+        create_avg_flow_chart(self.x_val_all_flow, self.y_date_time)
+        time.sleep(self.slep_time_building)
+
+
+
+    if __name__ == "__main__":
+        pass
