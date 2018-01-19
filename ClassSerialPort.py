@@ -72,7 +72,7 @@ class PortC(object):
         self.baudrate   = int(baud)
         self.port       = port
         self.com        = serial.Serial(self.port , baudrate=self.baudrate, bytesize=serial.EIGHTBITS, parity=serial.PARITY_EVEN, stopbits=serial.STOPBITS_ONE,timeout=.2)
-        print "Otwarto port komunikacyjny Mbus {}".format(self.port)
+        print "Otwarto port"
         self.table      = []
 
         #region chart
@@ -261,11 +261,11 @@ class PortC(object):
         time.sleep(self.slep_time_building)
 
     def build_ch_all_flow(self):
-        create_avg_flow_chart(self.x_val_all_flow, self.y_date_time)
+        create_overall_flow_chart(self.x_val_all_flow, self.y_date_time)
         time.sleep(self.slep_time_building)
 
     def build_ch_dt(self):
-        create_avg_flow_chart(self.x_val_all_flow, self.y_date_time)
+        create_dt_flow(self.x_val_all_flow, self.y_date_time)
         time.sleep(self.slep_time_building)
 
 

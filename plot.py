@@ -38,7 +38,7 @@ def create_avg_flow_chart(y1, x_time):
         str_title = 'AVG_speed ' + date_time_log_file()
         offline.plot({'data': [{'y': y1, 'x': x_time, 'mode': 'lines', 'name': str_title},],
                       'layout': {'title': str_title,
-                                 'font': dict(size=16)}}, filename=("wykresy"+"/"+str_title + "-" + date_time_log_file() + ".html"))
+                                 'font': dict(size=16)}}, filename=("wykresy"+"/"+str_title  + ".html"))
         time.sleep(1)
     else:
         print("Brak elementow w tablicach - Nie mozna stworzyc wykresu")
@@ -48,7 +48,7 @@ def create_overall_flow_chart(y1, x_time):
         str_title = 'Overall_Flow ' + date_time_log_file()
         offline.plot({'data': [{'y': y1, 'x': x_time, 'mode': 'lines', 'name': str_title},],
                       'layout': {'title': str_title,
-                                 'font': dict(size=16)}}, filename=("wykresy"+"/"+str_title + "-" + date_time_log_file() + ".html"))
+                                 'font': dict(size=16)}}, filename=("wykresy"+"/"+str_title   + ".html"))
         time.sleep(1)
     else:
         print("Brak elementow w tablicach - Nie mozna stworzyc wykresu")
@@ -61,7 +61,7 @@ def create_dt_flow(y1, x_time):
         temp_dict.append({'y':[73 for i in range(len(y1))], 'x': x_time, 'mode': 'lines', 'name': 'wyciek ponizej lini'} )
         offline.plot({'data': temp_dict,
                       'layout': {'title': str_title,
-                                 'font': dict(size=16)}}, filename=("wykresy"+"/"+str_title + "-" + date_time_log_file() + ".html"))
+                                 'font': dict(size=16)}}, filename=("wykresy"+"/"+str_title  + ".html"))
         time.sleep(1)
     else:
         print("Brak elementow w tablicach - Nie mozna stworzyc wykresu")
@@ -100,7 +100,7 @@ def create_chart_events(tab_data, x_time):
             temp_dict_table.append( {'y': temp_tb_element, 'x': x_time, 'mode': 'lines', 'name': tab_given_events[ count ] } )
         offline.plot({'data': temp_dict_table,
                       'layout': {'title': chart_name,
-                             'font': dict(size=16)}}, filename= ("wykresy"+"/"+chart_name + "-" + date_time_log_file()+".html"))
+                             'font': dict(size=16)}}, filename= ("wykresy"+"/"+chart_name  +".html"))
     else:
         print("Brak elementow w tablicach - Nie mozna stworzyc wykresu")
 
